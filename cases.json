@@ -1,0 +1,178 @@
+{
+  "version": "0.1.0",
+  "time_contract": "dtstart/rdates/exdates are local naive ISO seconds in timezone; expected is sorted unique UTC ISO seconds. All cases finite; local gap/fold times are excluded.",
+  "cases": [
+    {
+      "id": "month_31_skip",
+      "description": "A monthly 31st skips invalid dates without consuming COUNT.",
+      "dtstart": "2026-01-31T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=MONTHLY;BYMONTHDAY=31;COUNT=5",
+      "expected": [
+        "2026-01-31T09:00:00Z",
+        "2026-03-31T09:00:00Z",
+        "2026-05-31T09:00:00Z",
+        "2026-07-31T09:00:00Z",
+        "2026-08-31T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "leap_day",
+      "description": "A February 29 recurrence skips non-leap years.",
+      "dtstart": "2024-02-29T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=29;COUNT=3",
+      "expected": [
+        "2024-02-29T09:00:00Z",
+        "2028-02-29T09:00:00Z",
+        "2032-02-29T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "last_weekday",
+      "description": "BYSETPOS=-1 chooses the last weekday in each month.",
+      "dtstart": "2026-01-30T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1;COUNT=3",
+      "expected": [
+        "2026-01-30T09:00:00Z",
+        "2026-02-27T09:00:00Z",
+        "2026-03-31T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "second_monday",
+      "description": "Ordinal BYDAY chooses the second Monday, not every other Monday.",
+      "dtstart": "2026-01-12T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=MONTHLY;BYDAY=2MO;COUNT=3",
+      "expected": [
+        "2026-01-12T09:00:00Z",
+        "2026-02-09T09:00:00Z",
+        "2026-03-09T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "until_inclusive",
+      "description": "UNTIL includes an occurrence at the exact boundary.",
+      "dtstart": "2026-02-01T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=DAILY;UNTIL=20260203T090000Z",
+      "expected": [
+        "2026-02-01T09:00:00Z",
+        "2026-02-02T09:00:00Z",
+        "2026-02-03T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "exdate_no_refill",
+      "description": "EXDATE removes DTSTART and an interior occurrence; COUNT is not refilled.",
+      "dtstart": "2026-09-01T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=DAILY;COUNT=5",
+      "exdates": [
+        "2026-09-01T09:00:00",
+        "2026-09-03T09:00:00"
+      ],
+      "expected": [
+        "2026-09-02T09:00:00Z",
+        "2026-09-04T09:00:00Z",
+        "2026-09-05T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "rdate_union",
+      "description": "RDATE duplicates collapse and EXDATE overrides RDATE.",
+      "dtstart": "2026-09-01T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=DAILY;COUNT=2",
+      "rdates": [
+        "2026-09-02T09:00:00",
+        "2026-09-03T09:00:00",
+        "2026-09-04T09:00:00"
+      ],
+      "exdates": [
+        "2026-09-03T09:00:00"
+      ],
+      "expected": [
+        "2026-09-01T09:00:00Z",
+        "2026-09-02T09:00:00Z",
+        "2026-09-04T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "week_start_monday",
+      "description": "Fortnightly TU/SU recurrence, week starts Monday.",
+      "dtstart": "2026-09-01T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=WEEKLY;INTERVAL=2;BYDAY=TU,SU;WKST=MO;COUNT=4",
+      "expected": [
+        "2026-09-01T09:00:00Z",
+        "2026-09-06T09:00:00Z",
+        "2026-09-15T09:00:00Z",
+        "2026-09-20T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "week_start_sunday",
+      "description": "The same rule with WKST=SU gives different Sundays.",
+      "dtstart": "2026-09-01T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=WEEKLY;INTERVAL=2;BYDAY=TU,SU;WKST=SU;COUNT=4",
+      "expected": [
+        "2026-09-01T09:00:00Z",
+        "2026-09-13T09:00:00Z",
+        "2026-09-15T09:00:00Z",
+        "2026-09-27T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "new_york_spring",
+      "description": "Weekly local 09:00 remains 09:00 across spring DST; UTC hour changes.",
+      "dtstart": "2026-03-01T09:00:00",
+      "timezone": "America/New_York",
+      "rrule": "FREQ=WEEKLY;COUNT=3",
+      "expected": [
+        "2026-03-01T14:00:00Z",
+        "2026-03-08T13:00:00Z",
+        "2026-03-15T13:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "new_york_autumn",
+      "description": "Weekly local 09:00 remains 09:00 across autumn DST; UTC hour changes.",
+      "dtstart": "2026-10-25T09:00:00",
+      "timezone": "America/New_York",
+      "rrule": "FREQ=WEEKLY;COUNT=3",
+      "expected": [
+        "2026-10-25T13:00:00Z",
+        "2026-11-01T14:00:00Z",
+        "2026-11-08T14:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    },
+    {
+      "id": "last_calendar_day",
+      "description": "BYMONTHDAY=-1 includes February 28, unlike a monthly 31st.",
+      "dtstart": "2026-01-31T09:00:00",
+      "timezone": "UTC",
+      "rrule": "FREQ=MONTHLY;BYMONTHDAY=-1;COUNT=3",
+      "expected": [
+        "2026-01-31T09:00:00Z",
+        "2026-02-28T09:00:00Z",
+        "2026-03-31T09:00:00Z"
+      ],
+      "basis": "RFC 5545 sections 3.3.10 and 3.8.5.3"
+    }
+  ]
+}
